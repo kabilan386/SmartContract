@@ -1,0 +1,91 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.4;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract MyToken is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Burnable, Ownable {
+    using Counters for Counters.Counter;
+    address public _owner;
+    Counters.Counter private _tokenIdCounter;
+    mapping(uint => uint) public pricefortokenid;
+     struct certificate_struct { 
+      uint _id;
+      uint token_id;
+      string uri;
+      string name;
+      string Degree; 
+    }
+    uint public _id;
+
+    mapping ( uint =>certificate_struct[] ) public Students;
+    constructor() ERC721("MyToken", "MTK") {
+        _owner = msg.sender;
+    }
+    event NewCertificate(
+        uint _id,
+        uint token_id,
+      string uri,
+      string name,
+      string Degree 
+    );
+    function _baseURI() internal pure override returns (string memory) {
+        return "https://gateway.pinata.cloud/ipfs/";
+    }
+
+    function safeMint(string memory uri ,string memory name, string memory Degree) public   {
+        require(msg.sender == _owner,"Only Owner Can Mint");
+        _tokenIdCounter.increment();
+        uint256 tokenId = _tokenIdCounter.current();
+        // _safeMint(to, tokenId);
+        // getCountofMintedNft = tokenId;
+        // pricefortokenid[tokenId] = _price;
+        // _setTokenURI(tokenId, uri);
+        _id = uint(keccak256(abi.encodePacked(block.timestamp)));
+
+        Students[_id].push(certificate_struct(_id,tokenId,uri,name,Degree));
+        emit NewCertificate(_id,tokenId,uri,name,Degree);
+    }
+    function getCertificate(uint Encyid) public view returns (certificate_struct[] memory){
+        return Students[Encyid];
+    }
+    function getString() public view returns(uint)
+    {
+        return uint(keccak256(abi.encodePacked(block.timestamp)));
+    }
+
+    // The following functions are overrides required by Solidity.
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
+        internal
+        override(ERC721, ERC721Enumerable)
+    {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+}
